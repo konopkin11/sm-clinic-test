@@ -1,0 +1,50 @@
+version: '3.9'
+services:
+  backend:
+    container_name: backend
+    image: backend
+    volumes:
+      - ./storage:/tmp/
+    build: test-sm-clinic
+    ports:
+      - "8080:8080"
+    restart: unless-stopped
+    depends_on:
+      - dbpostgresql
+    networks:
+      - postgres
+    deploy:
+      resources:
+        limits:
+          cpus: '2'
+          memory: 800M
+  dbpostgresql:
+    image: postgres
+    container_name: postgres-db-konopkin
+    ports:
+      - "5432:5432"
+    environment:
+      - POSTGRES_PASSWORD=pass
+      - POSTGRES_USER=evgeniyuser
+      - POSTGRES_DB=clinic
+      - NAME=clinic
+    networks:
+      - postgres
+
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U evgeniyuser -d clinic" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+    restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          cpus: '1'
+          memory: 600M
+
+
+networks:
+  postgres:
+    driver: bridge
